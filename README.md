@@ -1,2 +1,1 @@
-# Hidden-Shadow
 # AI-Blog
