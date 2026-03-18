@@ -81,7 +81,12 @@ const hfClient = new OpenAI({ baseURL:"https://router.huggingface.co/v1", apiKey
 
 async function generateStoryHF(title,description){
   try{
-    const prompt=`Rewrite this news article into an attractive social media story. Include a strong hook at the beginning and a question at the end. Use the title and description below:\nTitle: ${title}\nDescription: ${description}`;
+    const prompt=`Rewrite this news article into an attractive social media story. 
+Do NOT include any CTA or links to outside websites. 
+Include a strong hook at the beginning and a question at the end. 
+Use the title and description below:
+Title: ${title}
+Description: ${description}`;
     const completion = await hfClient.chat.completions.create({
       model:"Qwen/Qwen2.5-7B-Instruct",
       messages:[{role:"user",content:prompt}]
@@ -120,7 +125,7 @@ async function createOverlayBuffer(title,originalBuffer=null){
 
   const svg=`<svg width="${width}" height="${height}">
   <rect x="0" y="0" width="${width}" height="${height}" fill="black" opacity="0.4"/>
-  <rect x="0" y="${bannerY}" width="${width}" height="${bannerHeight}" fill="#7A0000" opacity="0.7"/>
+  <rect x="0" y="${bannerY}" width="${width}" height="${bannerHeight}" fill="#7A0000" opacity="0.75"/>
   <text x="${width/2}" y="${bannerY+20}" font-size="${fontSize}" fill="white" text-anchor="middle" font-family="Arial Black" font-weight="900">
     ${textSVG}
   </text>
