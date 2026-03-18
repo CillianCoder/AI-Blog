@@ -75,34 +75,6 @@ function wrapText(text,maxChars=28){
 }
 
 // ----------------------------
-// CLEAN LINK + CTA SENTENCE
-// ----------------------------
-function cleanCaption(text){
-  if(!text) return "";
-
-  let cleaned = text
-    // Remove full sentences that contain CTA phrases
-    .replace(/[^.!?]*\b(read more|read the full story|full story|learn more|see more)\b[^.!?]*[.!?]?/gi, "")
-
-    // Remove URLs
-    .replace(/https?:\/\/\S+/g, "")
-
-    // Remove [Link ...] patterns
-    .replace(/\[.*?\]/g, "")
-
-    // Clean extra spaces & new lines
-    .replace(/\n{2,}/g, "\n\n")
-    .replace(/\s{2,}/g, " ")
-
-    .trim();
-
-  // Fix sentences that start with "to find out" → capitalize naturally
-  cleaned = cleaned.replace(/\bto find out\b/gi, "Find out");
-
-  return cleaned;
-}
-
-// ----------------------------
 // HUGGING FACE STORY GENERATION
 // ----------------------------
 const hfClient = new OpenAI({ baseURL:"https://router.huggingface.co/v1", apiKey:HF_KEY });
@@ -231,14 +203,9 @@ async function runBot(){
     }
     console.log("Article selected:",article.title);
 
-    // ----------------------------
-    // GENERATE STORY AND CLEAN LINK + CTA
-    // ----------------------------
-    let storyText = await generateStoryHF(article.title, article.description);
-    storyText = cleanCaption(storyText);
-
-    const hashtags = extractHashtags(storyText);
-    const postText = `${storyText}\n\n${hashtags}`;
+    const storyText=await generateStoryHF(article.title,article.description);
+    const hashtags=extractHashtags(storyText);
+    const postText=`${storyText}\n\n${hashtags}`;
 
     let imageBuffer=await downloadImageBuffer(article.urlToImage);
     imageBuffer=await createOverlayBuffer(article.title,imageBuffer);
@@ -254,3 +221,4 @@ async function runBot(){
 // RUN IMMEDIATELY
 // ----------------------------
 runBot();
+
