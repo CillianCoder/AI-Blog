@@ -196,39 +196,36 @@ async function postFacebook(text,imageBuffer,articleUrl){
 // ----------------------------
 // MAIN BOT
 // ----------------------------
-function formatHashtags(tagsArray){
-  // Remove duplicates, limit to 5, clean up characters
-  return [...new Set(tagsArray)]
-           .slice(0,5)
-           .map(t => "#" + t.replace(/[^\w]/g,""))
-           .join(" ");
-}
-
-
 async function runBot(){
   try{
     console.log("Bot running...");
-    const keyword=selectKeyword();
-    console.log("Selected keyword:",keyword);
-    const article=await fetchNews(keyword);
+    const keyword = selectKeyword();
+    console.log("Selected keyword:", keyword);
+    const article = await fetchNews(keyword);
     if(!article){
       console.log("No new articles to post.");
       return;
     }
-    console.log("Article selected:",article.title);
+    console.log("Article selected:", article.title);
 
-    const storyText=await generateStoryHF(article.title,article.description);
-    const rawTags = extractHashtags(storyText).split(" ");
-const hashtags = formatHashtags(rawTags);
-const postText = `${storyText}\n\n${hashtags}`;
+    const storyText = await generateStoryHF(article.title, article.description);
 
-    let imageBuffer=await downloadImageBuffer(article.urlToImage);
-    imageBuffer=await createOverlayBuffer(article.title,imageBuffer);
+    // ----------------------------
+    // Clean storyText: remove any hashtags already present
+    // ----------------------------
+    let storyTextClean = storyText.replace(/#\w+/g, "").trim();
 
-    await postFacebook(postText,imageBuffer,article.url);
+    const rawTags = extractHashtags(storyTextClean).split(" ");
+    const hashtags = formatHashtags(rawTags);
+    const postText = `${storyTextClean}\n\n${hashtags}`;
+
+    let imageBuffer = await downloadImageBuffer(article.urlToImage);
+    imageBuffer = await createOverlayBuffer(article.title, imageBuffer);
+
+    await postFacebook(postText, imageBuffer, article.url);
     console.log("Bot finished posting.");
   }catch(err){
-    console.error("Bot error:",err.message);
+    console.error("Bot error:", err.message);
   }
 }
 
