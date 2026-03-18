@@ -81,10 +81,10 @@ const hfClient = new OpenAI({ baseURL:"https://router.huggingface.co/v1", apiKey
 
 async function generateStoryHF(title,description){
   try{
-    const prompt=`Rewrite this news article into an attractive social media story. 
-Do NOT include any CTA or links to outside websites. 
+    const prompt = `Rewrite this news article into an attractive social media story for social media. 
+Do NOT include any CTA, URLs, or phrases that send readers outside. 
 Include a strong hook at the beginning and a question at the end. 
-Use the title and description below:
+Use emojis where appropriate to highlight key parts, and use bold (** **) for headlines if appropriate.
 Title: ${title}
 Description: ${description}`;
     const completion = await hfClient.chat.completions.create({
