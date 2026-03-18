@@ -17,17 +17,20 @@ jobs:
   run-bot:
     runs-on: ubuntu-latest
 
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # ✅ opt-in early
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # upgrade to @v5 when available
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v4  # upgrade to @v5 when available
         with:
-          node-version: "20"
+          node-version: "22"   # ✅ use active LTS (better than 20)
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci   # ✅ faster + cleaner installs
 
       - name: Run bot
         run: node bot.js
