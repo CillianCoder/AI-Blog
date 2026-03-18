@@ -196,6 +196,14 @@ async function postFacebook(text,imageBuffer,articleUrl){
 // ----------------------------
 // MAIN BOT
 // ----------------------------
+function formatHashtags(tagsArray){
+  // Remove duplicates, limit to 5, clean up characters
+  return [...new Set(tagsArray)]
+           .slice(0,5)
+           .map(t => "#" + t.replace(/[^\w]/g,""))
+           .join(" ");
+}
+
 async function runBot(){
   try{
     console.log("Bot running...");
@@ -210,10 +218,8 @@ async function runBot(){
 
     const storyText = await generateStoryHF(article.title, article.description);
 
-    // ----------------------------
-    // Clean storyText: remove any hashtags already present
-    // ----------------------------
-    let storyTextClean = storyText.replace(/#\w+/g, "").trim();
+    // Remove any hashtags AI may have added in the story
+    const storyTextClean = storyText.replace(/#\w+/g, "").trim();
 
     const rawTags = extractHashtags(storyTextClean).split(" ");
     const hashtags = formatHashtags(rawTags);
