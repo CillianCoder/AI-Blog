@@ -120,7 +120,7 @@ async function createOverlayBuffer(title,originalBuffer=null){
 
   const svg=`<svg width="${width}" height="${height}">
   <rect x="0" y="0" width="${width}" height="${height}" fill="black" opacity="0.4"/>
-  <rect x="0" y="${bannerY}" width="${width}" height="${bannerHeight}" fill="#7A0000" opacity="0.6"/>
+  <rect x="0" y="${bannerY}" width="${width}" height="${bannerHeight}" fill="#7A0000" opacity="0.7"/>
   <text x="${width/2}" y="${bannerY+20}" font-size="${fontSize}" fill="white" text-anchor="middle" font-family="Arial Black" font-weight="900">
     ${textSVG}
   </text>
