@@ -196,6 +196,15 @@ async function postFacebook(text,imageBuffer,articleUrl){
 // ----------------------------
 // MAIN BOT
 // ----------------------------
+function formatHashtags(tagsArray){
+  // Remove duplicates, limit to 5, clean up characters
+  return [...new Set(tagsArray)]
+           .slice(0,5)
+           .map(t => "#" + t.replace(/[^\w]/g,""))
+           .join(" ");
+}
+
+
 async function runBot(){
   try{
     console.log("Bot running...");
@@ -209,8 +218,9 @@ async function runBot(){
     console.log("Article selected:",article.title);
 
     const storyText=await generateStoryHF(article.title,article.description);
-    const hashtags=extractHashtags(storyText);
-    const postText=`${storyText}\n\n${hashtags}`;
+    const rawTags = extractHashtags(storyText).split(" ");
+const hashtags = formatHashtags(rawTags);
+const postText = `${storyText}\n\n${hashtags}`;
 
     let imageBuffer=await downloadImageBuffer(article.urlToImage);
     imageBuffer=await createOverlayBuffer(article.title,imageBuffer);
@@ -221,6 +231,7 @@ async function runBot(){
     console.error("Bot error:",err.message);
   }
 }
+
 
 // ----------------------------
 // RUN IMMEDIATELY
