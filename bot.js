@@ -36,10 +36,10 @@ const trueCrimeKeywords = [
   "famous trials","corruption scandals","celebrity deaths","mysterious creatures","weird news"
 ];
 const trendingKeywords = [
-  "AI","ChatGPT","machine learning","autonomous cars","drones",
-  "quantum computing","blockchain","crypto","VR","AR","Apple",
+  "machine learning","autonomous cars",
+  "quantum computing","blockchain","crypto","Apple",
   "iPhone","MacBook","Samsung","Galaxy","Google","Pixel","Sony",
-  "PlayStation","Tesla","EV","US elections","global conflict",
+  "PlayStation","Tesla","US elections","global conflict",
   "stock market","economy","climate change","NASA","space exploration",
   "trending apps","Netflix","viral trends","social media","influencers","celebrity news","sports highlights"
 ];
