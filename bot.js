@@ -11,7 +11,7 @@ const { OpenAI } = require("openai");
 const PAGE_ID = process.env.PAGE_ID;
 const PAGE_TOKEN = process.env.PAGE_TOKEN;
 const NEWS_KEY = process.env.NEWS_API_KEY;
-const HF_KEY = process.env.HF_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 // ----------------------------
 // POSTED ARTICLES FILE
@@ -74,35 +74,42 @@ function wrapText(text,maxChars=28){
 }
 
 // ----------------------------
-// HUGGING FACE STORY GENERATION
+// OPENAI STORY GENERATION
 // ----------------------------
-const hfClient = new OpenAI({ baseURL:"https://router.huggingface.co/v1", apiKey:HF_KEY });
+const { OpenAI } = require('openai');
+const openaiClient = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-async function generateStoryHF(title,description){
-  try{
+async function generateStoryOpenAI(title, description) {
+  try {
     const prompt = `
-Rewrite this news into a short, powerful Facebook post.
+Rewrite this news into a short, powerful Facebook article post.
 
 Rules:
 - Start with a strong hook (curiosity or shock)
-- Write 3–5 short lines (very easy to read)
+- Write 3–6 short lines (very easy to read)
 - Make it feel like storytelling, not news
 - End with a strong closing line (no CTA, no links)
 
 Title: ${title}
 Description: ${description}
 `;
-    const completion = await hfClient.chat.completions.create({
-      model:"Qwen/Qwen2.5-7B-Instruct",
-      messages:[{role:"user",content:prompt}]
+
+    const completion = await openaiClient.chat.completions.create({
+      model: "gpt-4.1",             // ✅ use GPT-4.1 for best quality
+      messages: [{ role: "user", content: prompt }],
+      max_completion_tokens: 120,   // 3–5 lines is enough
+      temperature: 0.7              // creativity vs readability
     });
-    return completion?.choices?.[0]?.message?.content||title;
-  }catch(err){
-    console.error("HF Text Error:",err.message);
+
+    return completion.choices[0].message.content || title;
+
+  } catch (err) {
+    console.error("OpenAI Text Error:", err.message);
     return title;
   }
 }
-
 // ----------------------------
 // CREATE DYNAMIC OVERLAY BUFFER
 // ----------------------------
@@ -221,7 +228,7 @@ async function runBot(){
     }
     console.log("Article selected:", article.title);
 
-    const storyText = await generateStoryHF(article.title, article.description);
+    const storyText = await generateStoryOpenAI(article.title, article.description);
 
     // Remove any hashtags AI may have added in the story
     const storyTextClean = storyText.replace(/#\w+/g, "").trim();
