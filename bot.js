@@ -76,7 +76,6 @@ function wrapText(text,maxChars=28){
 // ----------------------------
 // OPENAI STORY GENERATION
 // ----------------------------
-const { OpenAI } = require('openai');
 const openaiClient = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
