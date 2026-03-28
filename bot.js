@@ -83,8 +83,8 @@ async function generateStoryHF(title,description){
   try{
     const prompt = `Rewrite this news article into an attractive social media story for social media. 
 Do NOT include any CTA, URLs, or phrases that send readers outside. 
-Include a strong hook at the beginning and a question at the end. 
-Use emojis where appropriate to highlight key parts.
+Include a strong hook at the beginning and at the end. 
+Use a space after the title.
 Title: ${title}
 Description: ${description}`;
     const completion = await hfClient.chat.completions.create({
@@ -124,8 +124,8 @@ async function createOverlayBuffer(title,originalBuffer=null){
   }
 
   const svg=`<svg width="${width}" height="${height}">
-  <rect x="0" y="0" width="${width}" height="${height}" fill="black" opacity="0.3"/>
-  <rect x="0" y="${bannerY}" width="${width}" height="${bannerHeight}" fill="#7A0000" opacity="0.4"/>
+  <rect x="0" y="0" width="${width}" height="${height}" fill="black" opacity="0.2"/>
+  <rect x="0" y="${bannerY}" width="${width}" height="${bannerHeight}" fill="#7A0000" opacity="0.3"/>
   <text x="${width/2}" y="${bannerY+20}" font-size="${fontSize}" fill="white" text-anchor="middle" font-family="Arial Black" font-weight="900">
     ${textSVG}
   </text>
