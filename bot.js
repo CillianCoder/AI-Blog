@@ -36,8 +36,7 @@ const trueCrimeKeywords = [
   "famous trials","corruption scandals","celebrity deaths","mysterious creatures","weird news"
 ];
 const trendingKeywords = [
-  "machine learning","autonomous cars",
-  "quantum computing","blockchain","crypto","Apple",
+  "autonomous cars","blockchain","crypto","Apple",
   "iPhone","MacBook","Samsung","Galaxy","Google","Pixel","Sony",
   "PlayStation","Tesla","US elections","global conflict",
   "stock market","economy","climate change","NASA","space exploration",
@@ -81,7 +80,7 @@ const hfClient = new OpenAI({ baseURL:"https://router.huggingface.co/v1", apiKey
 
 async function generateStoryHF(title,description){
   try{
-    const prompt = `Rewrite this news article into an attractive social media story for social media. 
+    const prompt = `Rewrite this news article into an attractive social media post article for social media. 
 Do NOT include any CTA, URLs, or phrases that send readers outside. 
 Include a strong hook at the beginning and at the end. 
 Use a space after the title.
