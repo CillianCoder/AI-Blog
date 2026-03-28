@@ -86,8 +86,8 @@ async function generateStoryOpenAI(title, description) {
 Rewrite this news into a short, powerful Facebook article post.
 
 Rules:
-- Start with a strong hook (curiosity or shock)
-- Write 3–6 short lines (very easy to read)
+- Start with a strong hook (curiosity or shock and space after hook/title)
+- Write 4–6 short lines (very easy to read)
 - Make it feel like storytelling, not news
 - End with a strong closing line (no CTA, no links)
 
