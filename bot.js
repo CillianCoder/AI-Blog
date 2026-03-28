@@ -80,12 +80,18 @@ const hfClient = new OpenAI({ baseURL:"https://router.huggingface.co/v1", apiKey
 
 async function generateStoryHF(title,description){
   try{
-    const prompt = `Rewrite this news article into an attractive social media post article for social media. 
-Do NOT include any CTA, URLs, or phrases that send readers outside. 
-Include a strong hook at the beginning and at the end. 
-Use a space after the title.
+    const prompt = `
+Rewrite this news into a short, powerful Facebook post.
+
+Rules:
+- Start with a strong hook (curiosity or shock)
+- Write 3–5 short lines (very easy to read)
+- Make it feel like storytelling, not news
+- End with a strong closing line (no CTA, no links)
+
 Title: ${title}
-Description: ${description}`;
+Description: ${description}
+`;
     const completion = await hfClient.chat.completions.create({
       model:"Qwen/Qwen2.5-7B-Instruct",
       messages:[{role:"user",content:prompt}]
