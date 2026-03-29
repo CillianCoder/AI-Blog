@@ -29,10 +29,10 @@ jobs:
           node-version: "22"  # Active LTS
 
       # 3️⃣ Install dependencies (safe for sharp)
-- name: Install dependencies
-  run: |
-    npm ci || npm install
-    npm rebuild sharp
+      - name: Install dependencies
+        run: |
+          npm ci || npm install
+          npm rebuild sharp
 
       # 4️⃣ Run the bot
       - name: Run bot
