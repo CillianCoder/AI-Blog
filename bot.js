@@ -3,6 +3,10 @@ const axios = require("axios");
 const FormData = require("form-data");
 const sharp = require("sharp");
 const fs = require("fs");
+const Parser = require("rss-parser");
+const he = require("he");
+const { JSDOM } = require("jsdom");
+const { Readability } = require("@mozilla/readability");
 const { OpenAI } = require("openai");
 
 // ----------------------------
@@ -12,6 +16,9 @@ const PAGE_ID = process.env.PAGE_ID;
 const PAGE_TOKEN = process.env.PAGE_TOKEN;
 const NEWS_KEY = process.env.NEWS_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const parser = new Parser({
+  headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
+});
 
 // ----------------------------
 // POSTED ARTICLES FILE
@@ -41,6 +48,46 @@ const trendingKeywords = [
   "PlayStation","Tesla","US elections","global conflict",
   "stock market","economy","climate change","NASA","space exploration",
   "trending apps","Netflix","viral trends","social media","influencers","celebrity news","sports highlights"
+];
+const rssFeeds = [
+  "https://www.truecrimedaily.com/feed/",
+  "https://crimewatchdaily.com/feed/",
+  "https://listverse.com/feed/",
+  "https://crimelibrary.com/rss/news.xml",
+  "https://radaronline.com/true-crime/rss",
+  "https://murdermap.co.uk/feed",
+  "https://truecrimeforensics.com/feed",
+  "https://crimerocket.com/feed",
+  "https://truecrimestoryblog.com/blog/feed",
+  "https://truecrimereport.news.blog/feed",
+  "https://truecrime.blog/feed",
+  "https://blog.world-mysteries.com/feed",
+  "https://unsolved.com/feed",
+  "https://anomalien.com/feed",
+  "https://ghosttheory.com/feed",
+  "https://southernmostghosts.com/blog/feed",
+  "https://connectparanormal.net/feed",
+  "https://paranormal-evidence.com/feed",
+  "https://hauntedplaces.org/feed",
+  "https://yourghoststories.com/rss.php",
+  "https://the-line-up.com/rss/",
+  "https://mysterywire.com/feed",
+  "https://mysterydelver.com/feed",
+  "https://www.reddit.com/r/TrueCrime/.rss",
+  "https://www.reddit.com/r/UnresolvedMysteries/.rss",
+  "https://www.reddit.com/r/CrimeScene/.rss",
+  "https://www.reddit.com/r/SerialKillers/.rss",
+  "https://www.reddit.com/r/ColdCases/.rss",
+  "https://www.reddit.com/r/Paranormal/.rss",
+  "https://www.reddit.com/r/UFOs/.rss",
+  "https://www.reddit.com/r/cryptids/.rss",
+  "https://www.reddit.com/r/Strange/.rss",
+  "https://www.reddit.com/r/WeirdNews/.rss",
+  "https://www.reddit.com/r/GetMotivated/.rss",
+  "https://www.reddit.com/r/todayilearned/.rss",
+  "https://www.reddit.com/r/interestingasfuck/.rss",
+  "https://www.reddit.com/r/history/.rss",
+  "https://www.reddit.com/r/Documentaries/.rss",
 ];
 
 // ----------------------------
@@ -83,7 +130,7 @@ const openaiClient = new OpenAI({
 async function generateStoryOpenAI(title, description) {
   try {
     const prompt = `
-Rewrite this news into a short, powerful Facebook article post.
+Rewrite this into a short, powerful Facebook article post.
 
 Rules:
 - Start with a strong hook (curiosity or shock and space after hook/title)
@@ -136,11 +183,11 @@ async function createOverlayBuffer(title,originalBuffer=null){
 
 const svg=`<svg width="${width}" height="${height}">
   <rect x="0" y="0" width="${width}" height="${height}" fill="black" opacity="0.2"/>
-  <text x="${width/2}" y="${bannerY+20}" 
-    font-size="${fontSize}" 
-    fill="white" 
-    text-anchor="middle" 
-    font-family="Arial Black" 
+  <text x="${width/2}" y="${bannerY+20}"
+    font-size="${fontSize}"
+    fill="white"
+    text-anchor="middle"
+    font-family="Arial Black"
     font-weight="900"
     stroke="black"
     stroke-width="8"
@@ -191,6 +238,132 @@ async function fetchNews(keyword){
   }
 }
 
+async function extractArticle(url) {
+  try {
+    const { data } = await axios.get(url, {
+      headers: { "User-Agent": "Mozilla/5.0" },
+      timeout: 15000,
+    });
+
+    const dom = new JSDOM(data, { url });
+    const reader = new Readability(dom.window.document);
+    const article = reader.parse();
+
+    if (!article || !article.textContent) return null;
+    return article.textContent.replace(/\s+/g, " ").trim();
+  } catch (err) {
+    return null;
+  }
+}
+
+function smartSummary(text) {
+  const sentences = text
+    .split(". ")
+    .map((sentence) => sentence.trim())
+    .filter(Boolean);
+
+  if (sentences.length < 5) return text.trim();
+
+  const middleIndex = Math.floor(sentences.length / 2);
+  const picked = [
+    sentences[0],
+    sentences[1] || "",
+    sentences[middleIndex] || "",
+    sentences[sentences.length - 2] || "",
+  ].filter(Boolean);
+
+  return `${picked.join(". ").replace(/\s+/g, " ").trim()}.`;
+}
+
+async function getArticleForAI() {
+  const feeds = [...rssFeeds];
+
+  while (feeds.length > 0) {
+    const index = Math.floor(Math.random() * feeds.length);
+    const feedUrl = feeds.splice(index, 1)[0];
+
+    try {
+      const feed = await parser.parseURL(feedUrl);
+      if (!feed.items || feed.items.length === 0) continue;
+
+      const matchedArticles = feed.items.filter((item) => {
+        const text = `${item.title || ""} ${item.contentSnippet || ""}`.toLowerCase();
+        return trueCrimeKeywords.some((keyword) => text.includes(keyword));
+      });
+
+      if (matchedArticles.length === 0) continue;
+
+      const article = matchedArticles[Math.floor(Math.random() * matchedArticles.length)];
+      const title = he.decode(article.title || "").trim();
+      const rawText = article.contentSnippet || article.content || article.summary || "";
+      const cleanText = rawText
+        .replace(/<\/?[^>]+(>|$)/g, "")
+        .replace(/The post appeared first on.*$/i, "")
+        .replace(/\s+/g, " ")
+        .trim();
+
+      const articleUrl = article.link || (article.enclosure && article.enclosure.url) || "";
+      let description;
+
+      if (articleUrl) {
+        const fullText = await extractArticle(articleUrl);
+        if (fullText && fullText.length > 300) {
+          description = smartSummary(fullText);
+        }
+      }
+
+      if (!description) {
+        description = cleanText.split(" ").slice(0, 100).join(" ");
+      }
+
+      return { title, description };
+    } catch (err) {
+      console.log("Skipping:", feedUrl, "-", err.message);
+    }
+  }
+
+  console.log("No valid RSS articles found");
+  return null;
+}
+
+async function fetchRSSArticle() {
+  try {
+    const data = await getArticleForAI();
+    if (!data) return null;
+
+    return {
+      title: data.title,
+      description: data.description,
+      url: null,
+      urlToImage: null
+    };
+  } catch (err) {
+    console.log("RSS error:", err.message);
+    return null;
+  }
+}
+
+async function fetchTrivia() {
+  try {
+    const res = await axios.get("https://opentdb.com/api.php", {
+      params: { amount: 1, type: "multiple" }
+    });
+
+    const trivia = res.data.results[0];
+    if (!trivia) return null;
+
+    return {
+      title: he.decode(trivia.question),
+      description: he.decode(`Answer: ${trivia.correct_answer}`),
+      url: null,
+      urlToImage: null
+    };
+  } catch (err) {
+    console.log("Trivia error:", err.message);
+    return null;
+  }
+}
+
 // ----------------------------
 // POST TO FACEBOOK (BUFFER ONLY)
 // ----------------------------
@@ -205,8 +378,10 @@ async function postFacebook(text,imageBuffer,articleUrl){
     console.log("Posted successfully! FB Response:",res.data);
 
     // Add to posted list
-    postedArticles.push(articleUrl);
-    fs.writeFileSync(POSTED_FILE,JSON.stringify(postedArticles,null,2));
+    if(articleUrl){
+      postedArticles.push(articleUrl);
+      fs.writeFileSync(POSTED_FILE,JSON.stringify(postedArticles,null,2));
+    }
   }catch(err){
     console.error("Facebook error:",err.response?.data||err.message);
   }
@@ -228,9 +403,22 @@ async function runBot(){
     console.log("Bot running...");
     const keyword = selectKeyword();
     console.log("Selected keyword:", keyword);
-    const article = await fetchNews(keyword);
+    const sources = ["news", "rss", "trivia"];
+    const selectedSource = sources[Math.floor(Math.random() * sources.length)];
+    console.log("Selected source:", selectedSource);
+
+    let article = null;
+
+    if(selectedSource === "news"){
+      article = await fetchNews(keyword);
+    }else if(selectedSource === "rss"){
+      article = await fetchRSSArticle();
+    }else{
+      article = await fetchTrivia();
+    }
+
     if(!article){
-      console.log("No new articles to post.");
+      console.log("No content found.");
       return;
     }
     console.log("Article selected:", article.title);
