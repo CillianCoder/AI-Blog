@@ -2,15 +2,12 @@ name: News Bot
 
 on:
   schedule:
-    # 8 AM US Eastern
+    # 8 AM US Eastern → 13:00 UTC
     - cron: "0 13 * * *"
-
-    # 1 PM US Eastern
+    # 1 PM US Eastern → 18:00 UTC
     - cron: "0 18 * * *"
-
-    # 7 PM US Eastern
+    # 7 PM US Eastern → 00:00 UTC
     - cron: "0 0 * * *"
-
   workflow_dispatch:
 
 jobs:
@@ -18,24 +15,35 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # ✅ opt-in early
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # upgrade to @v5 when available
+        uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4  # upgrade to @v5 when available
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: "22"   # ✅ use active LTS (better than 20)
+          node-version: "22.x"
 
       - name: Install dependencies
-        run: npm ci   # ✅ faster + cleaner installs
+        run: npm ci
 
-      - name: Run bot
-        run: node bot.js
+      - name: Run bot with retry & logging
+        run: |
+          # create log file
+          touch bot.log
+          for i in {1..3}; do
+            node bot.js >> bot.log 2>&1 && break || sleep $((i*15))
+          done
         env:
           PAGE_ID: ${{ secrets.PAGE_ID }}
           PAGE_TOKEN: ${{ secrets.PAGE_TOKEN }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: bot-logs
+          path: bot.log
