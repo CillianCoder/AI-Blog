@@ -4,13 +4,10 @@ on:
   schedule:
     # 8 AM US Eastern
     - cron: "0 13 * * *"
-
     # 1 PM US Eastern
     - cron: "0 18 * * *"
-
     # 7 PM US Eastern
     - cron: "0 0 * * *"
-
   workflow_dispatch:
 
 jobs:
@@ -18,19 +15,19 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # ✅ opt-in early
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4  # upgrade to @v5 when available
+        uses: actions/checkout@v5  # ✅ latest stable
 
-      - name: Setup Node
-        uses: actions/setup-node@v4  # upgrade to @v5 when available
+      - name: Setup Node.js
+        uses: actions/setup-node@v5  # ✅ latest stable
         with:
-          node-version: "22"   # ✅ use active LTS (better than 20)
+          node-version: "22"
 
       - name: Install dependencies
-        run: npm ci   # ✅ faster + cleaner installs
+        run: npm ci
 
       - name: Run bot
         run: node bot.js
