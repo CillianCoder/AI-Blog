@@ -134,7 +134,7 @@ Rewrite this into a short, powerful Facebook article post.
 
 Rules:
 - Start with a strong hook (curiosity or shock and space after hook/title)
-- Write 4–6 short lines (very easy to read)
+- Write shortly (very easy to read)
 - Make it feel like storytelling, not news
 - End with a strong closing line (no CTA, no links)
 
@@ -466,7 +466,11 @@ if(!article){
     const storyText = await generateStoryOpenAI(article.title, article.description);
 
     // Remove any hashtags AI may have added in the story
-    const storyTextClean = storyText.replace(/#\w+/g, "").trim();
+    const storyTextClean = storyText
+  .replace(/#\w+/g, "")    // remove hashtags
+  .replace(/\*+/g, "")     // remove * or ** 
+  .replace(/_+/g, "")      // remove underscores
+  .trim();
 
     const rawTags = extractHashtags(storyTextClean).split(" ");
     const hashtags = formatHashtags(rawTags);
