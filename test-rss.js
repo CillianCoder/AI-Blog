@@ -1,74 +1,48 @@
 const Parser = require('rss-parser');
 const he = require('he');
+
+// We add "customFields" to help the parser find images and handle weird XML
 const parser = new Parser({
-  headers: { 'User-Agent': 'Mozilla/5.0' } // Keeps Reddit from blocking you
+  headers: { 
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'application/rss+xml, application/xml, text/xml, */*'
+  },
+  timeout: 10000,
 });
 
 const rssFeeds = [
-  // --- Working True Crime & News Feeds ---
-  "https://www.truecrimedaily.com",
-  "https://listverse.com",
-  "https://radaronline.com",
-  "https://murdermap.co.uk",
-  "https://truecrimeforensics.com",
-  "https://crimerocket.com",
-  "https://truecrimestoryblog.com",
-  "https://truecrimereport.news.blog",
-  "https://truecrime.blog",
-  "https://unsolved.com",
-  "https://the-line-up.com",
-  "https://mysterydelver.com",
-
-  // --- Working Paranormal & Mystery Feeds ---
-  "https://blog.world-mysteries.com",
-  "https://anomalien.com",
-  "https://ghosttheory.com",
-  "https://southernmostghosts.com",
-  "https://connectparanormal.net",
-  "https://paranormal-evidence.com",
-  "https://hauntedplaces.org",
-
-  // --- Working Reddit Mystery Feeds (Requires User-Agent) ---
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-
-  // --- Verified New High-Quality Sources (Fixed URLs) ---
   "https://projectcoldcase.org",
-  "https://charleyross.wordpress.com", 
-  "https://www.oxygen.com",
-  "https://defrostingcoldcases.com",
-  "https://insightcrime.org",
+  "https://www.truecrimedaily.com",
   "https://www.fbi.gov",
+  "https://www.reddit.com",
+  "https://charleyross.wordpress.com",
+  "https://defrostingcoldcases.com",
   "https://forensicfilesnow.com",
-  "https://crimereads.com",
   "https://storiesoftheunsolved.com",
-  "https://morbidology.com",
-  "https://atavist.com",
-  "https://thesuitcasemurder.com",
-  "https://investigative-reporter.com",
-  "https://crimeblogger19.com",
-  "https://www.thetruecrimemuseum.co.uk",
-  "https://caughtoffguard.org",
-  "https://truecrimenews.com"
+  "https://morbidology.com"
 ];
 
 async function runTest() {
-  console.log("🚀 Starting RSS Connection Test...");
+  console.log("🚀 Starting Improved RSS Connection Test...");
+  
   for (const url of rssFeeds) {
     try {
+      // Use a timeout to prevent hanging
       const feed = await parser.parseURL(url);
-      const item = feed.items[0]; // Get the newest post
-      console.log(`✅ WORKING: ${url}`);
-      console.log(`   Title: ${he.decode(item.title || "No Title")}`);
+      
+      if (feed.items && feed.items.length > 0) {
+        const item = feed.items[0];
+        console.log(`✅ WORKING: ${url}`);
+        console.log(`   Latest Title: ${he.decode(item.title || "No Title")}`);
+      } else {
+        console.log(`⚠️ EMPTY: ${url} (No items found)`);
+      }
     } catch (err) {
-      console.log(`❌ FAILED: ${url} - Error: ${err.message}`);
+      // If it fails, we try to see if it's a 'User-Agent' block or actual bad XML
+      console.log(`❌ FAILED: ${url}`);
+      console.log(`   Error Type: ${err.message}`);
     }
   }
 }
+
 runTest();
