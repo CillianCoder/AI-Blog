@@ -38,6 +38,7 @@ jobs:
       - name: Run bot
         run: node bot.js
         env:
+          TEST_MODE: true
           PAGE_ID: ${{ secrets.PAGE_ID }}
           PAGE_TOKEN: ${{ secrets.PAGE_TOKEN }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
