@@ -11,32 +11,24 @@ const parser = new Parser({
 
 // Add your RSS feeds here
 const rssFeeds = [
-  // 🔥 Strong reliable feeds
+  // 🥇 RSS FEEDS (best)
   "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
   "https://listverse.com/feed",
-
-  // 📰 True crime / blogs (WordPress = /feed)
-  "https://truecrimestoryblog.com/feed",
   "https://truecrimereport.news.blog/feed",
   "https://truecrime.blog/feed",
   "https://charleyross.wordpress.com/feed",
   "https://defrostingcoldcases.com/feed",
-
-  // 🧠 Mystery / paranormal
   "https://blog.world-mysteries.com/feed",
   "https://anomalien.com/feed",
   "https://ghosttheory.com/feed",
   "https://connectparanormal.net/feed",
   "https://hauntedplaces.org/feed",
-
-  // 📰 Crime & longform
   "https://crimereads.com/feed",
   "https://storiesoftheunsolved.com/feed",
-
-  // ⚠️ Optional (may work, test needed)
-  "https://radaronline.com/feed",
   "https://insightcrime.org/feed",
-    "https://www.truecrimedaily.com",
+
+  // 🥈 SCRAPING SOURCES (fallback)
+  "https://www.truecrimedaily.com",
   "https://radaronline.com",
   "https://murdermap.co.uk",
   "https://truecrimeforensics.com",
@@ -59,10 +51,7 @@ const rssFeeds = [
   "https://crimereads.com",
   "https://storiesoftheunsolved.com",
   "https://atavist.com",
-  "https://truecrimenews.com",
-    "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
-  "https://listverse.com/feed"
-  // ... add all other feeds
+  "https://truecrimenews.com"
 ];
 
 // Scrape a page using Readability
