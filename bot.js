@@ -446,8 +446,8 @@ async function runBot(){
     console.log("Bot running...");
     const keyword = selectKeyword();
     console.log("Selected keyword:", keyword);
-    let sources = ["rss"];
-let article = null;
+    let sources = ["rss", "news", "trivia"];
+    let article = null;
 
 // keep trying until we find an article or run out of sources
 while(sources.length > 0 && !article){
@@ -470,10 +470,6 @@ while(sources.length > 0 && !article){
     sources.splice(index, 1); // remove this source
   }
 }
-
-    // 🚨 TEST RSS ONLY (STOP AFTER FETCH)
-console.log("RSS TEST RESULT:", article);
-return;
 
 if(!article){
   console.log("No content found from any source. Skipping this run.");
