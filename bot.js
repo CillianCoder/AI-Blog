@@ -432,24 +432,35 @@ async function runBot(){
     console.log("Bot running...");
     const keyword = selectKeyword();
     console.log("Selected keyword:", keyword);
-    const sources = ["news", "rss", "trivia"];
-    const selectedSource = sources[Math.floor(Math.random() * sources.length)];
-    console.log("Selected source:", selectedSource);
+    let sources = ["news", "rss", "trivia"];
+let article = null;
 
-    let article = null;
+// keep trying until we find an article or run out of sources
+while(sources.length > 0 && !article){
+  // pick a random source
+  const index = Math.floor(Math.random() * sources.length);
+  const selectedSource = sources[index];
+  console.log("Trying source:", selectedSource);
 
-    if(selectedSource === "news"){
-      article = await fetchNews(keyword);
-    }else if(selectedSource === "rss"){
-      article = await fetchRSSArticle();
-    }else{
-      article = await fetchTrivia();
-    }
+  if(selectedSource === "news"){
+    article = await fetchNews(keyword);
+  } else if(selectedSource === "rss"){
+    article = await fetchRSSArticle();
+  } else if(selectedSource === "trivia"){
+    article = await fetchTrivia();
+  }
 
-    if(!article){
-      console.log("No content found.");
-      return;
-    }
+  // if failed, remove source from array
+  if(!article){
+    console.log(selectedSource, "returned no article. Trying next source...");
+    sources.splice(index, 1); // remove this source
+  }
+}
+
+if(!article){
+  console.log("No content found from any source. Skipping this run.");
+  return;
+}
     console.log("Article selected:", article.title);
 
     const storyText = await generateStoryOpenAI(article.title, article.description);
