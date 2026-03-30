@@ -51,7 +51,6 @@ const trendingKeywords = [
 ];
 const rssFeeds = [
   // --- Working True Crime & News Feeds ---
-  "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
   "https://listverse.com/feed",
   "https://truecrimereport.news.blog/feed",
   "https://truecrime.blog/feed",
