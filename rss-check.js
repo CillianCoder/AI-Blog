@@ -11,7 +11,7 @@ const parser = new Parser({
 
 // Add your RSS and site sources here
 const sources = [
-  // 🥇 RSS FEEDS (best)
+  // --- RSS Feeds ---
   "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
   "https://listverse.com/feed",
   "https://truecrimereport.news.blog/feed",
@@ -27,17 +27,20 @@ const sources = [
   "https://storiesoftheunsolved.com/feed",
   "https://insightcrime.org/feed",
 
-  // 🥈 SCRAPING SOURCES (fallback)
+  // --- Scraping Fallback Sources ---
   "https://www.truecrimedaily.com",
   "https://radaronline.com",
   "https://murdermap.co.uk",
   "https://truecrimeforensics.com",
-  "https://crimerocket.com",
-  "https://truecrimereport.news.blog",
+  "https://truecrimestoryblog.com",
   "https://truecrime.blog",
   "https://unsolved.com",
   "https://the-line-up.com",
   "https://blog.world-mysteries.com",
+  "https://anomalien.com",
+  "https://ghosttheory.com",
+  "https://connectparanormal.net",
+  "https://hauntedplaces.org",
   "https://projectcoldcase.org",
   "https://charleyross.wordpress.com",
   "https://www.oxygen.com",
