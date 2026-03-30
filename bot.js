@@ -316,7 +316,29 @@ async function getArticleForAI() {
         description = cleanText.split(" ").slice(0, 100).join(" ");
       }
 
-      return { title, description };
+      // Try to extract image
+let imageUrl = null;
+
+// 1. enclosure (most common in RSS)
+if (article.enclosure && article.enclosure.url) {
+  imageUrl = article.enclosure.url;
+}
+
+// 2. media:content (some feeds use this)
+else if (article["media:content"] && article["media:content"].url) {
+  imageUrl = article["media:content"].url;
+}
+
+// 3. extract <img> from HTML content
+else if (article.content) {
+  const match = article.content.match(/<img[^>]+src="([^">]+)"/);
+  if (match && match[1]) {
+    imageUrl = match[1];
+  }
+}
+
+// return WITH image now
+return { title, description, imageUrl };
     } catch (err) {
       console.log("Skipping:", feedUrl, "-", err.message);
     }
@@ -335,7 +357,7 @@ async function fetchRSSArticle() {
       title: data.title,
       description: data.description,
       url: null,
-      urlToImage: null
+      urlToImage: data.imageUrl || null
     };
   } catch (err) {
     console.log("RSS error:", err.message);
