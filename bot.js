@@ -63,6 +63,7 @@ const rssFeeds = [
   "https://unsolved.com",
   "https://the-line-up.com",
   "https://mysterydelver.com",
+  "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
 
   // --- Working Paranormal & Mystery Feeds ---
   "https://blog.world-mysteries.com",
