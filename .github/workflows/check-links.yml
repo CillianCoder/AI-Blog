@@ -1,15 +1,21 @@
 name: Manual Link Check
-on: workflow_dispatch # This adds the "Run" button
+on: 
+  workflow_dispatch: # This adds the "Run workflow" button in the Actions tab
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - name: Install
-        run: npm install rss-parser he
-      - name: Run
+          node-version: 20 # Upgraded to fix the "Unsupported Engine" warnings
+
+      - name: Install Dependencies
+        run: npm install axios xml2js he # New libraries for better parsing
+
+      - name: Run Test Script
         run: node test-rss.js
