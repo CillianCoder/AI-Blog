@@ -69,6 +69,12 @@ const rssFeeds = [
   "https://www.reddit.com/r/UnresolvedMysteries/.rss",
   "https://www.reddit.com/r/Paranormal/.rss",
   "https://feeds.feedburner.com/CriminalPodcast"
+
+
+
+
+
+
 ];
 
 // ----------------------------
@@ -264,24 +270,33 @@ function smartSummary(text) {
 }
 
 async function getArticleForAI() {
-  const feeds = [...rssFeeds];
-
-  while (feeds.length > 0) {
-    const index = Math.floor(Math.random() * feeds.length);
-    const feedUrl = feeds.splice(index, 1)[0];
-
+  for (const feedUrl of rssFeeds) {
     try {
       const feed = await parser.parseURL(feedUrl);
       if (!feed.items || feed.items.length === 0) continue;
 
-      const matchedArticles = feed.items.filter((item) => {
+      // Filter items matching keywords
+      let matchedArticles = feed.items.filter((item) => {
         const text = `${item.title || ""} ${item.contentSnippet || ""}`.toLowerCase();
         return trueCrimeKeywords.some((keyword) => text.includes(keyword));
       });
 
       if (matchedArticles.length === 0) continue;
 
-      const article = matchedArticles[Math.floor(Math.random() * matchedArticles.length)];
+      // Filter out already posted articles
+      matchedArticles = matchedArticles.filter((item) => {
+        const articleUrl = item.link || (item.enclosure && item.enclosure.url) || "";
+        return articleUrl && !postedArticles.includes(articleUrl);
+      });
+
+      if (matchedArticles.length === 0) continue;
+
+      // Sort by date (newest first)
+      matchedArticles.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+
+      // Pick the first (latest) article
+      const article = matchedArticles[0];
+
       const title = he.decode(article.title || "").trim();
       const rawText = article.contentSnippet || article.content || article.summary || "";
       const cleanText = rawText
@@ -305,28 +320,16 @@ async function getArticleForAI() {
       }
 
       // Try to extract image
-let imageUrl = null;
+      let imageUrl = null;
+      if (article.enclosure && article.enclosure.url) imageUrl = article.enclosure.url;
+      else if (article["media:content"] && article["media:content"].url) imageUrl = article["media:content"].url;
+      else if (article.content) {
+        const match = article.content.match(/<img[^>]+src="([^">]+)"/);
+        if (match && match[1]) imageUrl = match[1];
+      }
 
-// 1. enclosure (most common in RSS)
-if (article.enclosure && article.enclosure.url) {
-  imageUrl = article.enclosure.url;
-}
-
-// 2. media:content (some feeds use this)
-else if (article["media:content"] && article["media:content"].url) {
-  imageUrl = article["media:content"].url;
-}
-
-// 3. extract <img> from HTML content
-else if (article.content) {
-  const match = article.content.match(/<img[^>]+src="([^">]+)"/);
-  if (match && match[1]) {
-    imageUrl = match[1];
-  }
-}
-
-// return WITH image now
-return { title, description, imageUrl };
+      // Return all info including articleUrl for duplicate tracking
+      return { title, description, imageUrl, articleUrl };
     } catch (err) {
       console.log("Skipping:", feedUrl, "-", err.message);
     }
