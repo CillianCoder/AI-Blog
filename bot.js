@@ -145,7 +145,7 @@ Description: ${description}
     const completion = await openaiClient.chat.completions.create({
       model: "gpt-4.1",             // ✅ use GPT-4.1 for best quality
       messages: [{ role: "user", content: prompt }],
-      max_completion_tokens: 120,   // 3–5 lines is enough
+      max_completion_tokens: 300,   // 3–5 lines is enough
       temperature: 0.7              // creativity vs readability
     });
 
