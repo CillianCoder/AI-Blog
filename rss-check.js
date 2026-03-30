@@ -10,7 +10,7 @@ const parser = new Parser({
 });
 
 // Add your RSS and site sources here
-const rssFeeds = [
+const sources = [
   // 🥇 RSS FEEDS (best)
   "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
   "https://listverse.com/feed",
