@@ -10,13 +10,33 @@ const parser = new Parser({
 });
 
 // Add your RSS feeds here
-const rssFeeds = [
+const rssFeeds = [const rssFeeds = [
+  // 🔥 Strong reliable feeds
   "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
   "https://listverse.com/feed",
+
+  // 📰 True crime / blogs (WordPress = /feed)
   "https://truecrimestoryblog.com/feed",
-  // --- Working True Crime & News Feeds ---
-  "https://www.truecrimedaily.com",
-  "https://listverse.com",
+  "https://truecrimereport.news.blog/feed",
+  "https://truecrime.blog/feed",
+  "https://charleyross.wordpress.com/feed",
+  "https://defrostingcoldcases.com/feed",
+
+  // 🧠 Mystery / paranormal
+  "https://blog.world-mysteries.com/feed",
+  "https://anomalien.com/feed",
+  "https://ghosttheory.com/feed",
+  "https://connectparanormal.net/feed",
+  "https://hauntedplaces.org/feed",
+
+  // 📰 Crime & longform
+  "https://crimereads.com/feed",
+  "https://storiesoftheunsolved.com/feed",
+
+  // ⚠️ Optional (may work, test needed)
+  "https://radaronline.com/feed",
+  "https://insightcrime.org/feed",
+    "https://www.truecrimedaily.com",
   "https://radaronline.com",
   "https://murdermap.co.uk",
   "https://truecrimeforensics.com",
@@ -26,46 +46,22 @@ const rssFeeds = [
   "https://truecrime.blog",
   "https://unsolved.com",
   "https://the-line-up.com",
-  "https://mysterydelver.com",
-  "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
-
-  // --- Working Paranormal & Mystery Feeds ---
   "https://blog.world-mysteries.com",
   "https://anomalien.com",
   "https://ghosttheory.com",
-  "https://southernmostghosts.com",
   "https://connectparanormal.net",
-  "https://paranormal-evidence.com",
   "https://hauntedplaces.org",
-
-  // --- Working Reddit Mystery Feeds (Requires User-Agent) ---
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-
-  // --- Verified New High-Quality Sources (Fixed URLs) ---
   "https://projectcoldcase.org",
-  "https://charleyross.wordpress.com", 
+  "https://charleyross.wordpress.com",
   "https://www.oxygen.com",
   "https://defrostingcoldcases.com",
   "https://insightcrime.org",
-  "https://www.fbi.gov",
-  "https://forensicfilesnow.com",
   "https://crimereads.com",
   "https://storiesoftheunsolved.com",
-  "https://morbidology.com",
   "https://atavist.com",
-  "https://thesuitcasemurder.com",
-  "https://investigative-reporter.com",
-  "https://crimeblogger19.com",
-  "https://www.thetruecrimemuseum.co.uk",
-  "https://caughtoffguard.org",
-  "https://truecrimenews.com"
+  "https://truecrimenews.com",
+    "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
+  "https://listverse.com/feed"
   // ... add all other feeds
 ];
 
