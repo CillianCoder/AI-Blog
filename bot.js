@@ -159,46 +159,53 @@ Description: ${description}
 // ----------------------------
 // CREATE DYNAMIC OVERLAY BUFFER
 // ----------------------------
-async function createOverlayBuffer(title,originalBuffer=null){
-  let metadata={width:1200,height:630};
-  if(!originalBuffer){
-    originalBuffer=await sharp({create:{width:metadata.width,height:metadata.height,channels:3,background:"#000000"}}).png().toBuffer();
-  }else{
-    metadata=await sharp(originalBuffer).metadata();
+async function createOverlayBuffer(title, originalBuffer = null) {
+  let metadata = { width: 1200, height: 630 };
+
+  if (!originalBuffer) {
+    // fallback if no image
+    originalBuffer = await sharp({
+      create: { width: metadata.width, height: metadata.height, channels: 3, background: "#000000" }
+    }).png().toBuffer();
+  } else {
+    metadata = await sharp(originalBuffer).metadata();
   }
-  const width=metadata.width;
-  const height=metadata.height;
-  const lines=wrapText(title);
+
+  const width = metadata.width;
+  const height = metadata.height;
+  const lines = wrapText(title);
 
   // Font & banner dynamic
-  const fontSize=Math.floor(height*0.08);
-  const lineHeight=Math.floor(fontSize*1.3);
-  const bannerHeight=lines.length*lineHeight + 40; // extra padding
-  const bannerY=Math.floor(height/2 - bannerHeight/2);
+  const fontSize = Math.floor(height * 0.08);
+  const lineHeight = Math.floor(fontSize * 1.3);
+  const bannerHeight = lines.length * lineHeight + 40; // padding
+  const bannerY = Math.floor(height / 2 - bannerHeight / 2);
 
-  let textSVG="";
-  for(let i=0;i<lines.length;i++){
-    textSVG+=`<tspan x="${width/2}" dy="${i===0?fontSize:lineHeight}">${lines[i]}</tspan>`;
+  let textSVG = "";
+  for (let i = 0; i < lines.length; i++) {
+    textSVG += `<tspan x="${width / 2}" dy="${i === 0 ? fontSize : lineHeight}">${lines[i]}</tspan>`;
   }
 
-const svg=`<svg width="${width}" height="${height}">
-  <rect x="0" y="0" width="${width}" height="${height}" fill="black" opacity="0.2"/>
-  <text x="${width/2}" y="${bannerY+20}"
-    font-size="${fontSize}"
-    fill="white"
-    text-anchor="middle"
-    font-family="Arial Black"
-    font-weight="900"
-    stroke="black"
-    stroke-width="8"
-    paint-order="stroke fill"
-  >
-    ${textSVG}
-  </text>
-</svg>`;
+  // SVG overlay with dark background and title text (no watermark)
+  const svg = `<svg width="${width}" height="${height}">
+    <rect x="0" y="0" width="${width}" height="${height}" fill="black" opacity="0.4"/> <!-- dark overlay -->
+    <text x="${width / 2}" y="${bannerY + 20}"
+      font-size="${fontSize}"
+      fill="white"
+      text-anchor="middle"
+      font-family="Arial Black"
+      font-weight="900"
+      stroke="black"
+      stroke-width="8"
+      paint-order="stroke fill"
+    >
+      ${textSVG}
+    </text>
+  </svg>`;
 
-  const finalBuffer=await sharp(originalBuffer)
-    .composite([{input:Buffer.from(svg),gravity:"center"}])
+  const finalBuffer = await sharp(originalBuffer)
+    .blur(1.5) // slight blur to reduce copyright risk
+    .composite([{ input: Buffer.from(svg), gravity: "center" }])
     .jpeg()
     .toBuffer();
 
