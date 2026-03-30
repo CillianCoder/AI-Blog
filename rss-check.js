@@ -9,7 +9,7 @@ const parser = new Parser({
   headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
 });
 
-// Add your RSS feeds here
+// Add your RSS and site sources here
 const rssFeeds = [
   // 🥇 RSS FEEDS (best)
   "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
@@ -61,55 +61,50 @@ async function scrapePage(url) {
     if (!article) return null;
     return {
       title: article.title,
-      content: article.textContent.slice(0, 500) + "...", // sample
+      description: article.textContent.slice(0, 200) + "...", // short snippet
     };
   } catch (err) {
     return null;
   }
 }
 
+// Check RSS feed
 async function checkRSSFeed(feedUrl) {
   try {
     const feed = await parser.parseURL(feedUrl);
     if (!feed.items || feed.items.length === 0) return null;
     const firstItem = feed.items[0];
     return {
-      feedUrl,
       title: he.decode(firstItem.title || ""),
-      link: firstItem.link || "",
-      source: "rss",
+      description: he.decode(firstItem.contentSnippet || firstItem.content || "").slice(0, 200) + "...",
     };
   } catch (err) {
     return null;
   }
 }
 
+// Main check
 (async () => {
   console.log("Starting RSS + Scraping check...\n");
-  for (const feed of rssFeeds) {
-    process.stdout.write(`Checking: ${feed} ... `);
+
+  for (const url of sources) {
+    process.stdout.write(`Checking: ${url} ... `);
 
     // 1️⃣ Try RSS first
-    let result = await checkRSSFeed(feed);
+    let result = await checkRSSFeed(url);
 
-    // 2️⃣ If RSS fails, try scraping the site homepage
+    // 2️⃣ If RSS fails, try scraping
     if (!result) {
-      const scraped = await scrapePage(feed);
-      if (scraped) {
-        result = {
-          feedUrl: feed,
-          title: scraped.title,
-          link: feed,
-          source: "scraping",
-        };
-      }
+      result = await scrapePage(url);
     }
 
     if (result) {
-      console.log(`✅ WORKS (${result.source}): ${result.title}`);
+      console.log(`✅ WORKS: ${result.title}`);
+      console.log(`   Description: ${result.description}\n`);
     } else {
-      console.log(`❌ FAILED`);
+      console.log(`❌ FAILED\n`);
     }
   }
-  console.log("\nCheck finished.");
+
+  console.log("Check finished.");
 })();
