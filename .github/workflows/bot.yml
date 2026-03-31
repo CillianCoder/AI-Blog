@@ -21,6 +21,8 @@ jobs:
       # 1️⃣ Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: upgrade-bot
 
       # 2️⃣ Setup Node.js
       - name: Setup Node
