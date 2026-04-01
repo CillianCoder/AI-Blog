@@ -116,7 +116,7 @@ const openaiClient = new OpenAI({
 async function generateStoryOpenAI(title, description) {
   try {
     const prompt = `
-Rewrite this into a short, powerful Facebook article post.
+Rewrite this into a short humanize, powerful Facebook article post.
 
 Rules:
 - Start with a strong hook (curiosity or shock and space after hook/title)
