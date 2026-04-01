@@ -276,9 +276,13 @@ async function getArticleForAI() {
 
       // Filter items matching keywords
       let matchedArticles = feed.items.filter((item) => {
-        const text = `${item.title || ""} ${item.contentSnippet || ""}`.toLowerCase();
-        return trueCrimeKeywords.some((keyword) => text.includes(keyword));
-      });
+  const text = `${item.title || ""} ${item.contentSnippet || ""}`.toLowerCase();
+
+  // allow more flexible matching
+  return trueCrimeKeywords.some(keyword =>
+    text.includes(keyword.toLowerCase())
+  ) || Math.random() < 0.4; // allow 40% random articles
+});
 
       if (matchedArticles.length === 0) continue;
 
