@@ -478,4 +478,12 @@ if(!article){
 // RUN IMMEDIATELY
 // ----------------------------
 runBot();
+  .then(() => {
+    console.log("Process completed. Exiting...");
+    process.exit(0);
+  })
+  .catch((err) => {
+    console.error("Fatal error:", err);
+    process.exit(1);
+  });
 
