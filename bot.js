@@ -477,13 +477,14 @@ if(!article){
 // ----------------------------
 // RUN IMMEDIATELY
 // ----------------------------
-runBot();
-  .then(() => {
+(async () => {
+  try {
+    await runBot();
     console.log("Process completed. Exiting...");
     process.exit(0);
-  })
-  .catch((err) => {
+  } catch (err) {
     console.error("Fatal error:", err);
     process.exit(1);
-  });
+  }
+})();
 
