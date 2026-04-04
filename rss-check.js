@@ -1,17 +1,12 @@
 require("dotenv").config();
 const Parser = require("rss-parser");
-const axios = require("axios");
-const { JSDOM } = require("jsdom");
-const { Readability } = require("@mozilla/readability");
-const he = require("he");
 
 const parser = new Parser({
   headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" },
 });
 
-// Add your RSS and site sources here
+// Your RSS sources
 const sources = [
-  // --- RSS Feeds ---
   "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
   "https://listverse.com/feed",
   "https://truecrimereport.news.blog/feed",
@@ -26,88 +21,102 @@ const sources = [
   "https://crimereads.com/feed",
   "https://storiesoftheunsolved.com/feed",
   "https://insightcrime.org/feed",
-
-  // --- Scraping Fallback Sources ---
-  "https://www.truecrimedaily.com",
-  "https://radaronline.com",
-  "https://murdermap.co.uk",
-  "https://truecrimeforensics.com",
-  "https://truecrimestoryblog.com",
-  "https://truecrime.blog",
-  "https://unsolved.com",
-  "https://the-line-up.com",
-  "https://blog.world-mysteries.com",
-  "https://anomalien.com",
-  "https://ghosttheory.com",
-  "https://connectparanormal.net",
-  "https://hauntedplaces.org",
-  "https://projectcoldcase.org",
-  "https://charleyross.wordpress.com",
-  "https://www.oxygen.com",
-  "https://defrostingcoldcases.com",
-  "https://insightcrime.org",
-  "https://crimereads.com",
-  "https://storiesoftheunsolved.com",
-  "https://atavist.com",
-  "https://truecrimenews.com"
+  "https://www.reddit.com/r/TrueCrime/.rss",
+  "https://www.reddit.com/r/UnresolvedMysteries/.rss",
+  "https://www.reddit.com/r/Paranormal/.rss",
+  "https://feeds.feedburner.com/CriminalPodcast"
 ];
 
-// Scrape a page using Readability
-async function scrapePage(url) {
-  try {
-    const { data } = await axios.get(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-      timeout: 15000,
-    });
-    const dom = new JSDOM(data, { url });
-    const article = new Readability(dom.window.document).parse();
-    if (!article) return null;
-    return {
-      title: article.title,
-      description: article.textContent.slice(0, 200) + "...", // short snippet
-    };
-  } catch (err) {
-    return null;
-  }
+const keyword = "missing"; // Change for testing
+
+// ------------------- Helpers -------------------
+function matchesKeyword(text, keyword) {
+  return text.toLowerCase().includes(keyword.toLowerCase());
 }
 
-// Check RSS feed
-async function checkRSSFeed(feedUrl) {
-  try {
-    const feed = await parser.parseURL(feedUrl);
-    if (!feed.items || feed.items.length === 0) return null;
-    const firstItem = feed.items[0];
-    return {
-      title: he.decode(firstItem.title || ""),
-      description: he.decode(firstItem.contentSnippet || firstItem.content || "").slice(0, 200) + "...",
-    };
-  } catch (err) {
-    return null;
+function summarizeText(text, maxSentences = 5) {
+  if (!text) return "";
+
+  const sentences = text.split(/(?<=[.!?])\s+/);
+  if (sentences.length <= maxSentences) return text;
+
+  const stopWords = new Set([
+    "the","is","in","and","to","of","a","on","for","with","as","by","at","from","that","this","it","an"
+  ]);
+
+  const wordFreq = {};
+  const words = text.toLowerCase().replace(/[^\w\s]/g, "").split(" ");
+  for (let word of words) {
+    if (!stopWords.has(word) && word.length > 2) wordFreq[word] = (wordFreq[word] || 0) + 1;
   }
+
+  const sentenceScores = sentences.map(sentence => {
+    const words = sentence.toLowerCase().replace(/[^\w\s]/g, "").split(" ");
+    let score = 0;
+    for (let word of words) {
+      if (wordFreq[word]) score += wordFreq[word];
+    }
+    return { sentence, score };
+  });
+
+  const topSentences = sentenceScores
+    .sort((a, b) => b.score - a.score)
+    .slice(0, maxSentences)
+    .map(s => s.sentence);
+
+  const finalSummary = sentences.filter(s => topSentences.includes(s));
+
+  return finalSummary.join(" ");
 }
 
-// Main check
+// ------------------- Main Test -------------------
 (async () => {
-  console.log("Starting RSS + Scraping check...\n");
+  console.log("Using keyword:", keyword);
+  console.log("Starting RSS test...\n");
 
-  for (const url of sources) {
-    process.stdout.write(`Checking: ${url} ... `);
+  let articleFound = null;
 
-    // 1️⃣ Try RSS first
-    let result = await checkRSSFeed(url);
+  for (const feedUrl of sources) {
+    console.log("Checking RSS feed:", feedUrl);
 
-    // 2️⃣ If RSS fails, try scraping
-    if (!result) {
-      result = await scrapePage(url);
-    }
+    try {
+      const feed = await parser.parseURL(feedUrl);
+      if (!feed.items || feed.items.length === 0) continue;
 
-    if (result) {
-      console.log(`✅ WORKS: ${result.title}`);
-      console.log(`   Description: ${result.description}\n`);
-    } else {
-      console.log(`❌ FAILED\n`);
+      // Filter items by keyword
+      const matchedItems = feed.items.filter(item => {
+        const text = `${item.title || ""} ${item.contentSnippet || ""}`;
+        return matchesKeyword(text, keyword);
+      });
+
+      if (matchedItems.length === 0) continue;
+
+      // Pick the first matched article
+      const firstItem = matchedItems[0];
+
+      // Get full content
+      const fullContentRaw = firstItem.content || firstItem.contentSnippet || "";
+      const fullContent = fullContentRaw
+        .replace(/<[^>]*>/g, "") // remove HTML tags
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 8000); // limit to avoid huge text
+
+      const summary = summarizeText(fullContent, 5);
+
+      console.log("✅ Article found!\n");
+      console.log("📰 TITLE:\n", firstItem.title);
+      console.log("📄 FULL CONTENT:\n", fullContent);
+      console.log("🔥 SUMMARY:\n", summary);
+
+      articleFound = firstItem;
+      break; // Stop after first match
+
+    } catch (err) {
+      console.log("❌ Error fetching feed:", feedUrl);
+      continue;
     }
   }
 
-  console.log("Check finished.");
+  if (!articleFound) console.log("No articles found with the keyword.");
 })();
