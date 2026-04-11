@@ -116,12 +116,13 @@ const openaiClient = new OpenAI({
 async function generateStoryOpenAI(title, description) {
   try {
     const prompt = `
-Rewrite this into a short humanize, powerful Facebook article post.
+Rewrite this into a short,humanize, powerful Facebook article post.
 
 Rules:
 - Start with a strong hook (curiosity or shock and space after hook/title)
-- Write shortly (very easy to read)
-- Make it feel like storytelling, not news
+- Build curiosity naturally
+- Add a clear payoff(what actually happened)
+- Keep is short but COMPLETE (not cut-off)
 - End with a strong closing line (no CTA, no links)
 
 Title: ${title}
@@ -129,7 +130,7 @@ Description: ${description}
 `;
 
     const completion = await openaiClient.chat.completions.create({
-      model: "gpt-4.1",             // ✅ use GPT-4.1 for best quality
+      model: "gpt-4o-mini",             // fast + stable for automation
       messages: [{ role: "user", content: prompt }],
       max_completion_tokens: 300,   // 3–5 lines is enough
       temperature: 0.7              // creativity vs readability
@@ -157,8 +158,8 @@ async function createOverlayBuffer(title, originalBuffer = null) {
     metadata = await sharp(originalBuffer).metadata();
   }
 
-  const width = metadata.width;
-  const height = metadata.height;
+  const width = metadata.width || 1200;
+  const height = metadata.height || 630;
   const lines = wrapText(title);
 
   // Font & banner dynamic
@@ -281,7 +282,7 @@ async function getArticleForAI() {
   // allow more flexible matching
   return trueCrimeKeywords.some(keyword =>
     text.includes(keyword.toLowerCase())
-  ) || Math.random() < 0.4; // allow 40% random articles
+  ) || Math.random() < 0.15; // allow 15% random articles
 });
 
       if (matchedArticles.length === 0) continue;
@@ -350,7 +351,7 @@ async function fetchRSSArticle() {
     return {
       title: data.title,
       description: data.description,
-      url: null,
+      url: data.articleUrl,
       urlToImage: data.imageUrl || null
     };
   } catch (err) {
@@ -459,7 +460,7 @@ if(!article){
   .replace(/_+/g, "")      // remove underscores
   .trim();
 
-    const rawTags = extractHashtags(storyTextClean).split(" ");
+    const rawTags = extractHashtags(article.title + " " + storyTextClean).split(" ");
     const hashtags = formatHashtags(rawTags);
     const postText = `${storyTextClean}\n\n${hashtags}`;
 
