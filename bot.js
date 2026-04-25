@@ -51,57 +51,29 @@ const trendingKeywords = [
 ];
 const rssFeeds = [
   // --- Working True Crime & News Feeds ---
-  "https://www.truecrimedaily.com",
-  "https://listverse.com",
-  "https://radaronline.com",
-  "https://murdermap.co.uk",
-  "https://truecrimeforensics.com",
-  "https://crimerocket.com",
-  "https://truecrimestoryblog.com",
-  "https://truecrimereport.news.blog",
-  "https://truecrime.blog",
-  "https://unsolved.com",
-  "https://the-line-up.com",
-  "https://mysterydelver.com",
-  "https://rss.nytimes.com/services/xml/rss/nyt/US.xml",
+  "https://listverse.com/feed",
+  "https://truecrimereport.news.blog/feed",
+  "https://truecrime.blog/feed",
+  "https://charleyross.wordpress.com/feed",
+  "https://defrostingcoldcases.com/feed",
+  "https://blog.world-mysteries.com/feed",
+  "https://anomalien.com/feed",
+  "https://ghosttheory.com/feed",
+  "https://connectparanormal.net/feed",
+  "https://hauntedplaces.org/feed",
+  "https://crimereads.com/feed",
+  "https://storiesoftheunsolved.com/feed",
+  "https://insightcrime.org/feed",
+  "https://www.reddit.com/r/TrueCrime/.rss",
+  "https://www.reddit.com/r/UnresolvedMysteries/.rss",
+  "https://www.reddit.com/r/Paranormal/.rss",
+  "https://feeds.feedburner.com/CriminalPodcast"
 
-  // --- Working Paranormal & Mystery Feeds ---
-  "https://blog.world-mysteries.com",
-  "https://anomalien.com",
-  "https://ghosttheory.com",
-  "https://southernmostghosts.com",
-  "https://connectparanormal.net",
-  "https://paranormal-evidence.com",
-  "https://hauntedplaces.org",
 
-  // --- Working Reddit Mystery Feeds (Requires User-Agent) ---
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
-  "https://www.reddit.com",
 
-  // --- Verified New High-Quality Sources (Fixed URLs) ---
-  "https://projectcoldcase.org",
-  "https://charleyross.wordpress.com", 
-  "https://www.oxygen.com",
-  "https://defrostingcoldcases.com",
-  "https://insightcrime.org",
-  "https://www.fbi.gov",
-  "https://forensicfilesnow.com",
-  "https://crimereads.com",
-  "https://storiesoftheunsolved.com",
-  "https://morbidology.com",
-  "https://atavist.com",
-  "https://thesuitcasemurder.com",
-  "https://investigative-reporter.com",
-  "https://crimeblogger19.com",
-  "https://www.thetruecrimemuseum.co.uk",
-  "https://caughtoffguard.org",
-  "https://truecrimenews.com"
+
+
+
 ];
 
 // ----------------------------
@@ -144,12 +116,13 @@ const openaiClient = new OpenAI({
 async function generateStoryOpenAI(title, description) {
   try {
     const prompt = `
-Rewrite this into a short, powerful Facebook article post.
+Rewrite this into a short,humanize, powerful Facebook article post.
 
 Rules:
 - Start with a strong hook (curiosity or shock and space after hook/title)
-- Write shortly (very easy to read)
-- Make it feel like storytelling, not news
+- Build curiosity naturally
+- Add a clear payoff(what actually happened)
+- Keep is short but COMPLETE (not cut-off)
 - End with a strong closing line (no CTA, no links)
 
 Title: ${title}
@@ -157,9 +130,9 @@ Description: ${description}
 `;
 
     const completion = await openaiClient.chat.completions.create({
-      model: "gpt-4.1",             // ✅ use GPT-4.1 for best quality
+      model: "gpt-4o-mini",             // fast + stable for automation
       messages: [{ role: "user", content: prompt }],
-      max_completion_tokens: 300,   // 3–5 lines is enough
+      max_completion_tokens: 800,  
       temperature: 0.7              // creativity vs readability
     });
 
@@ -185,8 +158,8 @@ async function createOverlayBuffer(title, originalBuffer = null) {
     metadata = await sharp(originalBuffer).metadata();
   }
 
-  const width = metadata.width;
-  const height = metadata.height;
+  const width = metadata.width || 1200;
+  const height = metadata.height || 630;
   const lines = wrapText(title);
 
   // Font & banner dynamic
@@ -297,24 +270,37 @@ function smartSummary(text) {
 }
 
 async function getArticleForAI() {
-  const feeds = [...rssFeeds];
-
-  while (feeds.length > 0) {
-    const index = Math.floor(Math.random() * feeds.length);
-    const feedUrl = feeds.splice(index, 1)[0];
-
+  for (const feedUrl of rssFeeds) {
     try {
       const feed = await parser.parseURL(feedUrl);
       if (!feed.items || feed.items.length === 0) continue;
 
-      const matchedArticles = feed.items.filter((item) => {
-        const text = `${item.title || ""} ${item.contentSnippet || ""}`.toLowerCase();
-        return trueCrimeKeywords.some((keyword) => text.includes(keyword));
+      // Filter items matching keywords
+      let matchedArticles = feed.items.filter((item) => {
+  const text = `${item.title || ""} ${item.contentSnippet || ""}`.toLowerCase();
+
+  // allow more flexible matching
+  return trueCrimeKeywords.some(keyword =>
+    text.includes(keyword.toLowerCase())
+  ) || Math.random() < 0.15; // allow 15% random articles
+});
+
+      if (matchedArticles.length === 0) continue;
+
+      // Filter out already posted articles
+      matchedArticles = matchedArticles.filter((item) => {
+        const articleUrl = item.link || (item.enclosure && item.enclosure.url) || "";
+        return articleUrl && !postedArticles.includes(articleUrl);
       });
 
       if (matchedArticles.length === 0) continue;
 
-      const article = matchedArticles[Math.floor(Math.random() * matchedArticles.length)];
+      // Sort by date (newest first)
+      matchedArticles.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));
+
+      // Pick the first (latest) article
+      const article = matchedArticles[0];
+
       const title = he.decode(article.title || "").trim();
       const rawText = article.contentSnippet || article.content || article.summary || "";
       const cleanText = rawText
@@ -338,28 +324,16 @@ async function getArticleForAI() {
       }
 
       // Try to extract image
-let imageUrl = null;
+      let imageUrl = null;
+      if (article.enclosure && article.enclosure.url) imageUrl = article.enclosure.url;
+      else if (article["media:content"] && article["media:content"].url) imageUrl = article["media:content"].url;
+      else if (article.content) {
+        const match = article.content.match(/<img[^>]+src="([^">]+)"/);
+        if (match && match[1]) imageUrl = match[1];
+      }
 
-// 1. enclosure (most common in RSS)
-if (article.enclosure && article.enclosure.url) {
-  imageUrl = article.enclosure.url;
-}
-
-// 2. media:content (some feeds use this)
-else if (article["media:content"] && article["media:content"].url) {
-  imageUrl = article["media:content"].url;
-}
-
-// 3. extract <img> from HTML content
-else if (article.content) {
-  const match = article.content.match(/<img[^>]+src="([^">]+)"/);
-  if (match && match[1]) {
-    imageUrl = match[1];
-  }
-}
-
-// return WITH image now
-return { title, description, imageUrl };
+      // Return all info including articleUrl for duplicate tracking
+      return { title, description, imageUrl, articleUrl };
     } catch (err) {
       console.log("Skipping:", feedUrl, "-", err.message);
     }
@@ -377,7 +351,7 @@ async function fetchRSSArticle() {
     return {
       title: data.title,
       description: data.description,
-      url: null,
+      url: data.articleUrl,
       urlToImage: data.imageUrl || null
     };
   } catch (err) {
@@ -482,11 +456,11 @@ if(!article){
     // Remove any hashtags AI may have added in the story
     const storyTextClean = storyText
   .replace(/#\w+/g, "")    // remove hashtags
-  .replace(/\*+/g, "")     // remove * or ** 
+  .replace(/\*+/g, "")     // remove * or **
   .replace(/_+/g, "")      // remove underscores
   .trim();
 
-    const rawTags = extractHashtags(storyTextClean).split(" ");
+    const rawTags = extractHashtags(article.title + " " + storyTextClean).split(" ");
     const hashtags = formatHashtags(rawTags);
     const postText = `${storyTextClean}\n\n${hashtags}`;
 
@@ -504,5 +478,14 @@ if(!article){
 // ----------------------------
 // RUN IMMEDIATELY
 // ----------------------------
-runBot();
+(async () => {
+  try {
+    await runBot();
+    console.log("Process completed. Exiting...");
+    process.exit(0);
+  } catch (err) {
+    console.error("Fatal error:", err);
+    process.exit(1);
+  }
+})();
 
