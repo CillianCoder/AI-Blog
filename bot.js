@@ -132,7 +132,7 @@ Description: ${description}
     const completion = await openaiClient.chat.completions.create({
       model: "gpt-4o-mini",             // fast + stable for automation
       messages: [{ role: "user", content: prompt }],
-      max_completion_tokens: 300,   // 3–5 lines is enough
+      max_completion_tokens: 800,  
       temperature: 0.7              // creativity vs readability
     });
 
